@@ -22,7 +22,7 @@ author: Elmili72
 navbar-links:
   About Me: "aboutme"
   Resources:
-    - Writeups: ""
+    - Writeups: "Writeups/writeupejemplo.md"
     - Proyectos: ""
   CV: "/assets/img/CV/CV.pdf"
 
