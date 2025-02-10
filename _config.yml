@@ -22,7 +22,7 @@ author: Elmili72
 navbar-links:
   About Me: "aboutme"
   Resources:
-    - Writeups: "_posts/HTB/"
+    - Writeups: "_posts/HTB/2025-02-10-prueba.md"
     - Proyectos: ""
   CV: "/assets/img/CV/CV.pdf"
 
