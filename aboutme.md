@@ -1,16 +1,16 @@
 ---
 layout: page
-title: About me
-subtitle: Why you'd want to go on a date with me
+title: Sobre mí
+subtitle: Un placer conocerte!
 ---
 
-My name is Inigo Montoya. I have the following qualities:
+Mi nombre es Miguel Ángel, pero puedes llamarme Mili.
 
-- I rock a great mustache
-- I'm extremely loyal to my family
+Soy natural de Albacete, España y soy un aprendiz de hacking que espera desarrollarse pronto en este campo.
+En este portfolio iré subiendo writeups que vaya haciendo de las diferentes máquinas que haga de plataformas de Hacking
+como HTB, Vulnhub, entre otras (y posibles herramientas si me pongo a aprender un poquito de programación, jejeje).
 
-What else do you need?
+Espero que podamos aprender juntos y que os sirva de ayuda tanto como a mí
 
-### My story
 
-To be honest, I'm having some trouble remembering right now, so why don't you just watch [my movie](https://en.wikipedia.org/wiki/The_Princess_Bride_%28film%29) and it will answer **all** your questions.
+
