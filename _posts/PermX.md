@@ -2,9 +2,9 @@
 layout: post
 title: PermX
 subtitle: Plataforma HTB Dificultad Fácil
-cover-img: /assets/img/Permx/PermXpeq.png
-thumbnail-img: /assets/img/Permx/PermXpeq.png
-share-img: /assets/img/Permx/PermX.png
+cover-img: /assets/img/PermXpeq.png
+thumbnail-img: /assets/img/PermXpeq.png
+share-img: /assets/img/PermX.png
 author: Elmili72
 ---
 1. Confirmamos tener conexión y comprobamos a que máquina nos estamos enfrentando:
