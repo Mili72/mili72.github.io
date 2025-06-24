@@ -8,6 +8,7 @@ share-img: /assets/img/anonymous.png
 author: Elmili72
 ---
 
+
 ## Escaneo general de puertos
 
 Como siempre, para empezar realizamos un escaneo general de los puertos que pudieran estar abiertos en nuestra máquina.
