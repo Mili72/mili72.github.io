@@ -8,7 +8,7 @@ share-img: /assets/img/anonymous.png
 author: Elmili72
 ---
 
-![Pequeñasmentirosas](https://github.com/user-attachments/assets/636ddab7-d953-489d-a335-bb77dc13674b)
+![anonymous](https://github.com/user-attachments/assets/ecfe6e10-485f-405f-8ccf-39b4be6a2d50)
 
 ## Escaneo general de puertos
 
