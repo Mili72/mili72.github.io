@@ -8,6 +8,8 @@ share-img: /assets/img/mirasoyroot.png
 author: Elmili72
 ---
 
+![mirasoyroot](https://github.com/user-attachments/assets/bd2573ef-3808-46df-9b21-c248c8e94fc0)
+
 ## Escaneo general de puertos
 
 Como siempre, emepezamos realizando un escaneo de los puertos que pudiera tener abiertos nuestra víctima.
