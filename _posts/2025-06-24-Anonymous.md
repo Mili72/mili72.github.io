@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Anonymous
-subtitle: Plataforma MiraSoyRoot Dificultad Fácil
+subtitle: Plataforma MiraSoyRoot Dificultad Muy Fácil
 cover-img: /assets/img/anonymous.png
 thumbnail-img: /assets/img/anonymous.png
 share-img: /assets/img/anonymous.png
