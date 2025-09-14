@@ -2,9 +2,9 @@
 layout: post
 title: Mirasoyroot
 subtitle: Plataforma MiraSoyRoot Dificultad Muy Fácil
-cover-img: /assets/img/mirasoyroot.png
-thumbnail-img: /assets/img/mirasoyroot.png
-share-img: /assets/img/mirasoyroot.png
+cover-img: assets/img/Timetraversal/Captura de pantalla 2025-09-14 165842.png
+thumbnail-img: assets/img/Timetraversal/Captura de pantalla 2025-09-14 165842.png
+share-img: assets/img/Timetraversal/Captura de pantalla 2025-09-14 165842.png
 author: Elmili72
 ---
 
