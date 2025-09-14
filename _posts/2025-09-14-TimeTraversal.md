@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Mirasoyroot
+title: TimeTraversal
 subtitle: Plataforma MiraSoyRoot Dificultad Muy Fácil
 cover-img: assets/img/Timetraversal/Captura de pantalla 2025-09-14 165842.png
 thumbnail-img: assets/img/Timetraversal/Captura de pantalla 2025-09-14 165842.png
