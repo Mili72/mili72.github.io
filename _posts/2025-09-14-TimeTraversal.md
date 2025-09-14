@@ -46,13 +46,13 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 http://172.17.0.2 [200 OK] Apache[2.4.58], Country[RESERVED][ZZ], HTML5, HTTPServer[Ubuntu Linux][Apache/2.4.58 (Ubuntu)], IP[172.17.0.2], Title[TIME LUXURY WATCHES]
 ```
 
-![[Pasted image 20250623174409.png]]
+<img width="1780" height="658" alt="Pasted image 20250623174409" src="https://github.com/user-attachments/assets/6482564f-151b-4c4e-a716-30203186e040" />
 
-![[Pasted image 20250623174419.png]]
+<img width="506" height="68" alt="Pasted image 20250623174419" src="https://github.com/user-attachments/assets/07ed0c4e-ff7e-4da0-834c-b3566ac34ed7" />
 
 Aquí cualquiera puede pensar, pues bueno intentamos enumerar directorios con LFI para intentar exfiltrar el archivo */etc/passwd*. Pues nuestro amigo y venico Yerman nos tiene una sorpresa jejejej.
 
-![[Pasted image 20250623175407.png]]
+<img width="475" height="421" alt="Pasted image 20250623175407" src="https://github.com/user-attachments/assets/0b2495c6-ac5f-4e6e-a63a-f976bfa46ce0" />
 
 No diré en que imagen se encuentras las credenciales jijiji.
 
